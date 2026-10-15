@@ -1,0 +1,38 @@
+# Configuración del analizador estático de Cifrado Cero.
+# Base: flutter_lints (recomendado por el equipo de Flutter).
+# Reforzado con reglas de estilo/seguridad acordes a Clean Architecture.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - "**/*.g.dart"      # código generado (drift, json, etc.) — a futuro
+    - "**/*.freezed.dart"
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Elevar algunas advertencias clave a error para que no pasen el gate de PR.
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+
+linter:
+  rules:
+    # Estilo
+    prefer_single_quotes: true
+    always_declare_return_types: true
+    directives_ordering: true
+    require_trailing_commas: true
+    sort_pub_dependencies: false
+    # Robustez
+    avoid_dynamic_calls: true
+    avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    unawaited_futures: true
+    # Documentación de API pública del core (relaja ruido en features)
+    public_member_api_docs: false

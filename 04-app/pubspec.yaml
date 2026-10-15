@@ -1,0 +1,46 @@
+name: shield_app
+description: "Cifrado Cero - App de protección contra llamadas y SMS maliciosos (Android-first, iOS planificado)."
+publish_to: 'none'
+
+# Versionado SemVer [DA-16]. version_name+version_code
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Gestión de estado + inyección de dependencias [DA-13]
+  flutter_riverpod: ^2.6.1
+
+  # Navegación con pila real, deep links y guards [04 app-flutter, mapa-navegacion]
+  go_router: ^14.6.2
+
+  # Cliente HTTP para la API /v1 (TLS, interceptores, pinning a futuro) [DA-14, DA-15]
+  dio: ^5.7.0
+
+  # Igualdad de valor para entidades/estados sin boilerplate
+  equatable: ^2.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Análisis estático
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Nota: las fuentes (Space Grotesk, Hanken Grotesk, JetBrains Mono) y los
+  # Material Symbols se empaquetarán como assets locales para operar offline
+  # (ver 01-docs/06-design-system.md §6.8). Se declaran cuando se agreguen
+  # los binarios de las fuentes.
+  # fonts:
+  #   - family: SpaceGrotesk
+  #     fonts:
+  #       - asset: assets/fonts/SpaceGrotesk-Regular.ttf
