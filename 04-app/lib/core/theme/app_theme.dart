@@ -41,18 +41,41 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
       ),
 
-      // Botón primario: cyan, texto tinta cyan, radio 12.
+      // Botón primario: cyan con tinta oscura. Se resuelven TODOS los estados
+      // explícitamente (habilitado, presionado, deshabilitado) con
+      // WidgetStateProperty para que ningún color por defecto de Material
+      // (p. ej. el morado/magenta de la semilla M3) pueda filtrarse.
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.accentCyan,
-          foregroundColor: AppColors.accentCyanInk,
-          textStyle: textTheme.titleMedium,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.card),
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return AppColors.surface3;
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return AppColors.accentCyanHover;
+            }
+            return AppColors.accentCyan;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return AppColors.textMuted;
+            }
+            return AppColors.accentCyanInk;
+          }),
+          // Sin overlay translúcido que tiña el cyan al presionar.
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          iconColor: const WidgetStatePropertyAll(AppColors.accentCyanInk),
+          textStyle: WidgetStatePropertyAll(textTheme.titleMedium),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadii.card),
+            ),
           ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
           ),
         ),
       ),
@@ -77,9 +100,7 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.bgRoot,
-        hintStyle: textTheme.bodyMedium?.copyWith(
-          color: AppColors.textMuted,
-        ),
+        hintStyle: textTheme.bodyMedium?.copyWith(color: AppColors.textMuted),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,

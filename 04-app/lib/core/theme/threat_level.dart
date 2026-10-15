@@ -17,15 +17,15 @@ enum ThreatLevel {
 
   /// Color principal del nivel (texto/icono/borde).
   Color get color => switch (this) {
-        ThreatLevel.alto => AppColors.danger,
-        ThreatLevel.medio => AppColors.warning,
-        ThreatLevel.bajo => AppColors.success,
-      };
+    ThreatLevel.alto => AppColors.danger,
+    ThreatLevel.medio => AppColors.warning,
+    ThreatLevel.bajo => AppColors.success,
+  };
 
   /// Etiqueta textual redundante para accesibilidad.
   String get label => switch (this) {
-        ThreatLevel.alto => 'ALTO',
-        ThreatLevel.medio => 'MEDIO',
-        ThreatLevel.bajo => 'BAJO',
-      };
+    ThreatLevel.alto => 'ALTO',
+    ThreatLevel.medio => 'MEDIO',
+    ThreatLevel.bajo => 'BAJO',
+  };
 }

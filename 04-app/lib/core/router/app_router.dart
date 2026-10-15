@@ -5,6 +5,7 @@ import 'package:shield_app/core/router/app_routes.dart';
 import 'package:shield_app/features/auth/presentation/auth_providers.dart';
 import 'package:shield_app/features/auth/presentation/login_screen.dart';
 import 'package:shield_app/features/auth/presentation/register_screen.dart';
+import 'package:shield_app/features/auth/presentation/splash_screen.dart';
 import 'package:shield_app/features/events/presentation/calls_screen.dart';
 import 'package:shield_app/features/events/presentation/record_detail_screen.dart';
 import 'package:shield_app/features/reports/presentation/report_channels_screen.dart';
@@ -34,18 +35,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoutes.shieldPath,
+    // Arranque en el splash mientras se restaura la sesión (R3.3). El guard
+    // redirige a login (DN-02) o al escudo según el estado resuelto.
+    initialLocation: AppRoutes.splashPath,
     debugLogDiagnostics: true,
     refreshListenable: authListenable,
     redirect: (context, state) {
       final status = ref.read(authStatusProvider);
-      final loggingIn = state.matchedLocation == AppRoutes.loginPath ||
-          state.matchedLocation == AppRoutes.registerPath;
+      final location = state.matchedLocation;
+      final onSplash = location == AppRoutes.splashPath;
+      final loggingIn =
+          location == AppRoutes.loginPath || location == AppRoutes.registerPath;
 
-      // Mientras no se resuelva el estado inicial, no redirigir.
-      if (status == AuthStatus.unknown) return null;
+      // Mientras no se resuelva el estado inicial, mantener el splash.
+      if (status == AuthStatus.unknown) {
+        return onSplash ? null : AppRoutes.splashPath;
+      }
 
       final authenticated = status == AuthStatus.authenticated;
+
+      // Ya resuelto: salir del splash hacia el destino correcto.
+      if (onSplash) {
+        return authenticated ? AppRoutes.shieldPath : AppRoutes.loginPath;
+      }
 
       // Sin sesión y fuera de las pantallas de auth → a login.
       if (!authenticated && !loggingIn) return AppRoutes.loginPath;
@@ -56,6 +68,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // --- Arranque ---
+      GoRoute(
+        path: AppRoutes.splashPath,
+        name: AppRoutes.splashName,
+        builder: (context, state) => const SplashScreen(),
+      ),
+
       // --- Auth (sin bottom nav) ---
       GoRoute(
         path: AppRoutes.loginPath,

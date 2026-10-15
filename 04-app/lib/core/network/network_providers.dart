@@ -25,9 +25,7 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(AppVersionInterceptor(kAppVersion));
 
   if (config.enableLogging) {
-    dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
-    );
+    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
   }
 
   return dio;

@@ -1,0 +1,123 @@
+<!--
+  Cifrado Cero · Plantilla "Confirm signup" (Supabase Auth)
+  Pegar en: Dashboard → Authentication → Emails → Confirm signup (ver README).
+  Variables disponibles de Supabase: {{ .ConfirmationURL }}, {{ .SiteURL }},
+  {{ .Email }}, {{ .Token }}, {{ .TokenHash }}.
+  Nota: los clientes de correo exigen estilos "inline"; se usan tablas y
+  atributos inline para máxima compatibilidad (Gmail, Outlook, Apple Mail).
+-->
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirma tu cuenta · Cifrado Cero</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#0a0e15; font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0e15; padding:24px 0;">
+      <tr>
+        <td align="center">
+          <!-- Tarjeta -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px; background-color:#0f131b; border:1px solid #1c2027; border-radius:16px; overflow:hidden;">
+            <!-- Encabezado / marca -->
+            <tr>
+              <td align="center" style="padding:32px 32px 8px 32px;">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="width:56px; height:56px; background-color:#1c2027; border:1px solid #3b494c; border-radius:14px; text-align:center; vertical-align:middle; font-size:28px; color:#00e5ff;">
+                      &#128274;
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:16px 32px 0 32px;">
+                <h1 style="margin:0; font-size:22px; font-weight:bold; color:#dfe2ed; letter-spacing:-0.3px;">
+                  Confirma tu cuenta
+                </h1>
+                <p style="margin:6px 0 0 0; font-size:13px; color:#849396;">
+                  Cifrado Cero &bull; Enclave Seguro
+                </p>
+              </td>
+            </tr>
+
+            <!-- Cuerpo -->
+            <tr>
+              <td style="padding:24px 32px 8px 32px;">
+                <p style="margin:0 0 16px 0; font-size:15px; line-height:1.6; color:#bac9cc;">
+                  Gracias por unirte a <strong style="color:#dfe2ed;">Cifrado Cero</strong>, tu
+                  filtro telefónico que bloquea extorsión, phishing y llamadas spam
+                  directamente en tu dispositivo.
+                </p>
+                <p style="margin:0 0 24px 0; font-size:15px; line-height:1.6; color:#bac9cc;">
+                  Para activar tu blindaje, confirma que este correo es tuyo:
+                </p>
+              </td>
+            </tr>
+
+            <!-- Botón -->
+            <tr>
+              <td align="center" style="padding:0 32px 24px 32px;">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background-color:#00e5ff; border-radius:12px;">
+                      <a href="{{ .ConfirmationURL }}"
+                         style="display:inline-block; padding:14px 32px; font-size:15px; font-weight:bold; color:#00363d; text-decoration:none; border-radius:12px;">
+                        Confirmar mi cuenta
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Enlace alternativo -->
+            <tr>
+              <td style="padding:0 32px 24px 32px;">
+                <p style="margin:0 0 8px 0; font-size:12px; color:#849396;">
+                  Si el botón no funciona, copia y pega este enlace en tu navegador:
+                </p>
+                <p style="margin:0; font-size:12px; word-break:break-all;">
+                  <a href="{{ .ConfirmationURL }}" style="color:#00e5ff; text-decoration:underline;">
+                    {{ .ConfirmationURL }}
+                  </a>
+                </p>
+              </td>
+            </tr>
+
+            <!-- Nota de privacidad -->
+            <tr>
+              <td style="padding:0 32px 24px 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#181c23; border-left:3px solid #7dffa2; border-radius:8px;">
+                  <tr>
+                    <td style="padding:12px 14px;">
+                      <p style="margin:0; font-size:12px; line-height:1.5; color:#bac9cc;">
+                        <strong style="color:#7dffa2;">Garantía de privacidad:</strong>
+                        no accedemos a tu agenda ni a tus contactos. Tu historial de
+                        llamadas y mensajes nunca sale de tu teléfono.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Pie -->
+            <tr>
+              <td style="padding:0 32px 32px 32px; border-top:1px solid #1c2027;">
+                <p style="margin:16px 0 0 0; font-size:11px; line-height:1.5; color:#849396;">
+                  Si no creaste esta cuenta, puedes ignorar este correo con seguridad;
+                  nadie podrá acceder sin confirmar este enlace.
+                </p>
+                <p style="margin:12px 0 0 0; font-size:11px; color:#849396;">
+                  &copy; Cifrado Cero
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

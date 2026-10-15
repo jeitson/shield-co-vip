@@ -22,9 +22,24 @@ Registro vivo de pendientes, decisiones diferidas y trabajo fuera del alcance ac
 
 ## 2. Autenticación y cuenta
 
+- [x] **Flujo de login + registro** implementado en `04-app` (feature `auth`, Clean Arch + Riverpod). Spec en `.kiro/specs/01-autenticacion/`. UI fiel al design system, gate de consentimiento, estados cargando/éxito/error, sesión en secure storage, guard de auth real (arranque en login, DN-02).
+- [x] **Backend real de auth (código).** `AuthRemoteDataSourceSupabase` sobre `supabase_flutter` (signUp/signIn/reset) cableado; `authRemoteDataSourceProvider` elige real vs. fake según `AppConfig.hasSupabase`. Esquema en `06-database/` (profiles + trigger `handle_new_user` + RLS + `app_params`) y proyecto Supabase en `05-backend/`. Spec `.kiro/specs/02-backend-database/`. [DN-01, DA-11]
+- [x] **Recuperación de clave real** por email vía Supabase Auth (diálogo con campo de correo → `resetPasswordForEmail`). [DA-04]
+- [x] **Backend desplegado y login validado.** CLI de Supabase instalada; 4 migraciones aplicadas al proyecto real vía `supabase db push --db-url`; verificado por REST (profiles+trigger, app_params seed, RLS). Login real OK (signUp + signInWithPassword). `04-app/dart_defines.json` apunta al backend real.
+- [x] **Prueba visual en dispositivo real** (Motorola moto g04s, Android 14). App corriendo contra Supabase real vía `flutter run --flavor dev -t lib/main_dev.dart --dart-define-from-file=dart_defines.json`. Registro valida y queda la sesión; logout disponible en Avanzados.
+- [ ] **Prueba de registro desde cero pendiente de re-validar** tras los ajustes de UI (botón, mensaje verde, redirección a login a los ~2.5s). Nota: `adb` tenía binarios duplicados (SDK vs cask) que rompían `flutter devices`; se normalizó reiniciando el adb server del SDK.
+
+### Ajustes de UI de auth aplicados en esta ronda
+- **Botón primario propio `PrimaryButton`** (Material+InkWell con color pintado explícito) en login y registro: evita que el **Material You** del dispositivo inyecte un fondo magenta sobre `FilledButton`. Cyan `#00e5ff`/tinta `#00363d`; deshabilitado gris; registro con estados idle→cyan2→verde.
+- **Login sin checkboxes de consentimiento** (solo registro los exige, RN-REG-03). `LoginFormState` ya no tiene flags de consentimiento.
+- **Registro con desenlaces de éxito explícitos** (`RegisterSubmitState`: idle/submitting/success/pendingConfirmation/error). Confirmación de correo pendiente se muestra en **verde** (no rojo) y redirige al login a los ~2.5s; errores reales en rojo con texto blanco.
+- **Logout** expuesto en Avanzados (`settings/AdvancedScreen`): confirma, hace `signOut()` en Supabase + borra secure storage, el guard vuelve a login. Se añadió `signOut()` al contrato `AuthRemoteDataSource`.
+- [ ] **Confirmación de email:** el proyecto real la tiene **activada**. Decidir si se mantiene (registro requiere confirmar correo) o se desactiva en el panel para login inmediato. El flujo de confirmación/reenvío en la app no está construido aún.
+- [x] **Edge Function `v1-health` desplegada** y respondiendo (HTTP 200 en `${SUPABASE_URL}/functions/v1/v1-health`). Confirma el patrón de API versionada y el pipeline de deploy de funciones. Requirió un access token personal (`sbp_...`) en `SUPABASE_ACCESS_TOKEN`.
+- [ ] **Refresh de sesión 12h** contra `devices`: `restoreSession` descarta sesiones expiradas; falta el refresh real y la caída a "desprotegido" ante revocación (Fase 2 de `02-backend-database`). [DA-04]
 - [ ] **OTP de verificación de celular** en registro (diseñado, no implementado en MVP). Definir proveedor SMS (Twilio u otro) y costo. [DA-04]
-- [ ] Confirmar **política de contraseñas** (hoy solo longitud ≥ 8; evaluar robustez: mayúscula/número/símbolo + 2FA opcional). Pregunta abierta de `01-autenticacion.md`.
-- [ ] Confirmar **alcance geográfico** (hoy +57 fijo; ¿multi-país a futuro?). RN-REG-01.
+- [ ] Confirmar **política de contraseñas** (hoy solo longitud ≥ 8; `Password` VO preparado para endurecer sin cambiar contrato). Pregunta abierta de `01-autenticacion.md`.
+- [ ] Confirmar **alcance geográfico** (hoy +57 fijo en `ColombianPhone`; ¿multi-país a futuro?). RN-REG-01.
 
 ## 3. Dataset de bloqueo
 

@@ -1,0 +1,9 @@
+# Secretos del backend — nunca versionar
+.env
+.env.*
+!.env.example
+
+# Artefactos locales de la CLI de Supabase
+supabase/.branches
+supabase/.temp
+.supabase

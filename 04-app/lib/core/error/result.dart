@@ -17,15 +17,12 @@ sealed class Result<T> {
 
   /// Transforma el valor de éxito preservando el error.
   Result<R> map<R>(R Function(T value) transform) => switch (this) {
-        Ok<T>(:final value) => Ok(transform(value)),
-        Err<T>(:final failure) => Err(failure),
-      };
+    Ok<T>(:final value) => Ok(transform(value)),
+    Err<T>(:final failure) => Err(failure),
+  };
 
   /// Colapsa el resultado a un único valor manejando ambos casos.
-  R fold<R>(
-    R Function(T value) onOk,
-    R Function(Failure failure) onErr,
-  ) =>
+  R fold<R>(R Function(T value) onOk, R Function(Failure failure) onErr) =>
       switch (this) {
         Ok<T>(:final value) => onOk(value),
         Err<T>(:final failure) => onErr(failure),

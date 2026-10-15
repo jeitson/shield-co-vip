@@ -3,6 +3,7 @@ import 'package:shield_app/core/config/app_config.dart';
 
 /// Entrypoint del flavor de producción.
 ///
-/// Ejecutar con:
-///   flutter run --flavor prod -t lib/main_prod.dart
+/// Ejecutar/compilar con las credenciales reales de Supabase:
+///   flutter build apk --flavor prod -t lib/main_prod.dart \
+///     --dart-define-from-file=dart_defines.json
 Future<void> main() => bootstrap(AppConfig.prod());

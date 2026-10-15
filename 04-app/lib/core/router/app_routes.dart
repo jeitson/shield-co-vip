@@ -4,6 +4,12 @@
 /// (`context.goNamed`). Mapea el flujo de `01-docs/03-mapa-navegacion.md` a una
 /// pila real con deep-link capable (corrige los gaps del prototipo).
 abstract final class AppRoutes {
+  // --- Arranque ---
+  /// Pantalla neutra mientras se restaura la sesión desde secure storage
+  /// (R3.3): evita el parpadeo hacia login antes de resolver el estado.
+  static const splashPath = '/';
+  static const splashName = 'splash';
+
   // --- Auth (fuera del shell) ---
   static const loginPath = '/login';
   static const loginName = 'login';

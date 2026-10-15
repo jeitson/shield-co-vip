@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shield_app/app.dart';
 import 'package:shield_app/core/config/app_config.dart';
 import 'package:shield_app/core/config/config_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Arranque compartido por todos los flavors.
 ///
@@ -12,15 +13,21 @@ import 'package:shield_app/core/config/config_providers.dart';
 Future<void> bootstrap(AppConfig config) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Punto único para inicializaciones tempranas que se agregarán al crecer
-  // el proyecto (orientación, secure storage, DB cifrada, etc.). Mantener
-  // esto fuera de los widgets conserva el dominio agnóstico.
+  // Inicializa Supabase solo si hay credenciales (vía --dart-define). Sin
+  // ellas (tests / desarrollo offline), la app opera con la fuente de datos
+  // fake y no se inicializa el SDK. El anon key es público; RLS protege.
+  if (config.hasSupabase) {
+    await Supabase.initialize(
+      url: config.supabaseUrl,
+      // Clave pública publicable (antes `anonKey`); segura en cliente, RLS protege.
+      publishableKey: config.supabaseAnonKey,
+      debug: config.enableLogging,
+    );
+  }
 
   runApp(
     ProviderScope(
-      overrides: [
-        appConfigProvider.overrideWithValue(config),
-      ],
+      overrides: [appConfigProvider.overrideWithValue(config)],
       child: const ShieldApp(),
     ),
   );

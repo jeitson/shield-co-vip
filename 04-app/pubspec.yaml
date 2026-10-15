@@ -26,6 +26,14 @@ dependencies:
   # Igualdad de valor para entidades/estados sin boilerplate
   equatable: ^2.0.5
 
+  # Almacenamiento seguro de sesión/tokens (Android Keystore / iOS Keychain)
+  # [DA-14, 02-seguridad §02.3]. Nunca SharedPreferences plano.
+  flutter_secure_storage: ^9.2.2
+
+  # SDK oficial de Supabase: Auth (login/registro/recuperación) y acceso a
+  # Postgres con RLS para el backend real [DN-01, DA-11].
+  supabase_flutter: ^2.8.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

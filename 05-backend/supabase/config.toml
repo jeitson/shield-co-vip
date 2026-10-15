@@ -1,0 +1,45 @@
+# Configuración del proyecto Supabase (CLI) — Cifrado Cero
+# Ref: .kiro/specs/02-backend-database/design.md; 03-architecture (DA-11, DA-15).
+# El project_id se enlaza con `supabase link --project-ref <ref>`.
+
+project_id = "cifrado-cero"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# URL del sitio para los enlaces de recuperación/confirmación por email.
+# En local usa el valor de abajo; en el proyecto real se configura en el panel.
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["io.supabase.cifradocero://login-callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+# MVP: validación por email. Para pruebas rápidas se puede desactivar la
+# confirmación obligatoria en el panel; en producción déjala activa.
+enable_confirmations = false
+
+[edge_runtime]
+enabled = true
+
+# Health-check como patrón de Edge Functions versionadas por carpeta (DA-15).
+[functions.v1-health]
+verify_jwt = false

@@ -46,3 +46,10 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Variables de entorno / dart-defines con credenciales (no versionar).
+# El archivo de ejemplo (dart_defines.example.json) sí se versiona.
+dart_defines.json
+.env
+.env.*
+!.env.example
