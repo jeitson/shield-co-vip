@@ -1,0 +1,6 @@
+{
+  "name": "Cifrado Cero - Blindaje y Protección Telefónica",
+  "description": "Aplicación móvil de blindaje telefónico, filtro criptográfico zero-knowledge contra extorsión, call centers molestos y cumplimiento de la Ley 2300 de 2023.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
