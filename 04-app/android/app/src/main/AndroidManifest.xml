@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Acceso a red: Supabase Auth, sync del dataset y obtención del pepper.
+         Imprescindible en TODOS los builds. Flutter solo inyecta INTERNET en
+         debug/profile (para hot reload), por lo que en release debe declararse
+         aquí explícitamente o la app no tendrá conectividad. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Interceptación de llamadas (rol ROLE_CALL_SCREENING vía RoleManager). -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!-- Inspección NO-destructiva de SMS: solo lectura, sin ser app por defecto. -->

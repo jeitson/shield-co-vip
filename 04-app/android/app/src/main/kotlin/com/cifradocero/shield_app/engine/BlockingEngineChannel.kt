@@ -18,11 +18,15 @@ import io.flutter.plugin.common.MethodChannel
  *  - setPepper(pepper) / clearPepper()
  *  - requestCallScreeningRole()  → lanza el diálogo del SO (RoleManager).
  *  - permissionStatus()          → estado por capa (degradación honesta, §00.6).
+ *  - drainEvents()               → devuelve y vacía la cola de interceptaciones
+ *                                  producidas por el servicio/receiver (nativo→
+ *                                  Dart), para que Dart las persista.
  */
 class BlockingEngineChannel(
     private val context: Context,
     private val snapshotStore: SnapshotStore,
     private val pepperStore: PepperStore,
+    private val eventQueueStore: EventQueueStore = EventQueueStore(context),
 ) : MethodChannel.MethodCallHandler {
 
     /** Activity actual, necesaria para lanzar el diálogo de rol. */
@@ -61,6 +65,7 @@ class BlockingEngineChannel(
             }
             "requestCallScreeningRole" -> requestCallScreeningRole(result)
             "permissionStatus" -> result.success(permissionStatus())
+            "drainEvents" -> result.success(eventQueueStore.drain())
             else -> result.notImplemented()
         }
     }

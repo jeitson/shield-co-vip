@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shield_app/core/db/app_database.dart';
+import 'package:shield_app/core/db/daos/events_dao.dart';
+import 'package:shield_app/core/db/daos/listed_numbers_dao.dart';
 import 'package:shield_app/core/db/daos/phone_hashes_dao.dart';
 import 'package:shield_app/core/db/daos/shield_config_dao.dart';
 import 'package:shield_app/core/db/encrypted_database.dart';
@@ -33,4 +35,16 @@ final shieldConfigDaoProvider = FutureProvider<ShieldConfigDao>((ref) async {
 final phoneHashesDaoProvider = FutureProvider<PhoneHashesDao>((ref) async {
   final db = await ref.watch(appDatabaseProvider.future);
   return db.phoneHashesDao;
+});
+
+/// DAO del historial de eventos interceptados (spec 03, feature `events`).
+final eventsDaoProvider = FutureProvider<EventsDao>((ref) async {
+  final db = await ref.watch(appDatabaseProvider.future);
+  return db.eventsDao;
+});
+
+/// DAO de las listas locales confianza/negra (spec 03, feature `lists`).
+final listedNumbersDaoProvider = FutureProvider<ListedNumbersDao>((ref) async {
+  final db = await ref.watch(appDatabaseProvider.future);
+  return db.listedNumbersDao;
 });

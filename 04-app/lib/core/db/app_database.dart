@@ -1,6 +1,10 @@
 import 'package:drift/drift.dart';
+import 'package:shield_app/core/db/daos/events_dao.dart';
+import 'package:shield_app/core/db/daos/listed_numbers_dao.dart';
 import 'package:shield_app/core/db/daos/phone_hashes_dao.dart';
 import 'package:shield_app/core/db/daos/shield_config_dao.dart';
+import 'package:shield_app/core/db/tables/intercepted_events_table.dart';
+import 'package:shield_app/core/db/tables/listed_numbers_table.dart';
 import 'package:shield_app/core/db/tables/phone_hashes_table.dart';
 import 'package:shield_app/core/db/tables/shield_config_table.dart';
 
@@ -13,18 +17,26 @@ part 'app_database.g.dart';
 /// constructor recibe el ejecutor ya configurado para no acoplar el esquema al
 /// mecanismo de cifrado (facilita tests con `NativeDatabase.memory`).
 ///
-/// Esquema v1: `shield_config` (3 capas, singleton) y `phone_hashes` (dataset
-/// local). Las tablas de listas, eventos y métricas se añadirán por migración
-/// incremental cuando llegue su feature.
+/// Esquema:
+/// - **v1**: `shield_config` (3 capas, singleton) y `phone_hashes` (dataset local).
+/// - **v2**: añade `eventos` (historial interceptado) y `numeros_listados`
+///   (listas confianza/negra, exclusividad RN-05) — feature `events` + `lists`
+///   (spec 03). La migración v1→v2 es **no destructiva**: solo crea las tablas
+///   nuevas, sin tocar los datos existentes.
 @DriftDatabase(
-  tables: [ShieldConfigTable, PhoneHashesTable],
-  daos: [ShieldConfigDao, PhoneHashesDao],
+  tables: [
+    ShieldConfigTable,
+    PhoneHashesTable,
+    InterceptedEventsTable,
+    ListedNumbersTable,
+  ],
+  daos: [ShieldConfigDao, PhoneHashesDao, EventsDao, ListedNumbersDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -35,6 +47,13 @@ class AppDatabase extends _$AppDatabase {
         const ShieldConfigTableCompanion(id: Value(1)),
         mode: InsertMode.insertOrIgnore,
       );
+    },
+    onUpgrade: (m, from, to) async {
+      // v1 → v2: crea solo las tablas nuevas de la spec 03 (no destructivo).
+      if (from < 2) {
+        await m.createTable(interceptedEventsTable);
+        await m.createTable(listedNumbersTable);
+      }
     },
     beforeOpen: (details) async {
       // Integridad referencial activa para futuras tablas relacionadas.

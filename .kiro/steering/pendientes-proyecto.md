@@ -42,6 +42,13 @@ Registro vivo de pendientes, decisiones diferidas y trabajo fuera del alcance ac
 - [ ] Confirmar **política de contraseñas** (hoy solo longitud ≥ 8; `Password` VO preparado para endurecer sin cambiar contrato). Pregunta abierta de `01-autenticacion.md`.
 - [ ] Confirmar **alcance geográfico** (hoy +57 fijo en `ColombianPhone`; ¿multi-país a futuro?). RN-REG-01.
 
+## 2b. Registro de eventos interceptados (spec 03)
+
+- [x] **Spec `03-registro-eventos` implementada (opción A).** `.kiro/specs/03-registro-eventos/` (requirements + design + tasks, bloques 1–7 hechos). Feature `events` completa (dominio `InterceptedEvent` + base local cifrada drift/SQLCipher + `CallsScreen` real: telemetría, búsqueda, chips, estados vacío/carga/error, sandbox SMS no navegable, SIC condicional, paginación) + feature `lists` mínima (tabla `numeros_listados`, exclusividad **RN-05** atómica, `ClassifyNumber` con normalización E.164, re-cableado del `engineIndexProvider` niveles 1/3 con hashes del pepper). Migración drift v1→v2 no destructiva (tablas `eventos` y `numeros_listados`). Enganche de detalle por id (`eventByIdProvider`) para la spec 04. Verificado: analyze limpio + 158 tests (DB, dominio, puente motor, widget). **Pendiente solo** la prueba en dispositivo (bloque 8.5). Fuera de alcance de esta spec: flujo SIC completo (spec 06), detalle `PANT-DETAIL` forense (spec 04), UI de administración de listas (spec 05).
+- [x] **Productor real de eventos conectado (puente nativo→Dart).** El `CallScreeningService` (llamadas) y el `SmsReceiver` (SMS) **encolan** cada interceptación en una cola nativa persistente (`EventQueueStore` en `filesDir`), porque corren sin FlutterEngine vivo. Dart la **drena** vía `drainEvents` (MethodChannel), **rehidrata** el evento (categoría por hash del `EngineIndex` o por capa del nativo; nivel/título/diagnóstico vía `ThreatPresentation`) y lo persiste con `RecordEvent`. El drenado vive en `interceptedEventsDrainerProvider` (desde el `AppShell`): al montar y al volver a `resumed`. `PrecedenceMatcher.evaluate` ahora devuelve la capa responsable. Verificado: analyze + tests de rehidratación; APK dev compila e instala en el Moto g04s. **Nota:** el Simulador de negocio (spec 07) sigue siendo sandbox puro (RN-SIM-01); para sembrar eventos de prueba hay una **utilidad dev-only** en Avanzados → Desarrollo (`devEventSeederProvider`), no el simulador. [DA-12, spec 05-motor-bloqueo, spec 03]
+- [ ] **Decisiones de negocio tomadas en la spec 03 (revisables):** "tiempo ahorrado" = `nº eventos × 45s`; "intercepciones de hoy" = eventos del día local; "críticas" = nivel ALTO. Confirmar fórmula con negocio.
+- [ ] **Retención/purga del historial** de eventos: no implementada (pregunta abierta de negocio #2). Definir cuántos eventos / por cuánto tiempo y si hay purga automática.
+
 ## 3. Dataset de bloqueo
 
 - [ ] Activar **`domain_hashes`**: extracción de URL/dominio en SMS + matching. Estructura ya diseñada; activación diferida. [DA-06]
@@ -66,6 +73,8 @@ Registro vivo de pendientes, decisiones diferidas y trabajo fuera del alcance ac
 
 - [ ] **Segundo entorno** (dev/staging + prod) con proyectos Supabase y peppers separados + flavors. Hoy un solo entorno. [DA-15]
 - [ ] **CI/CD** completo (build Flutter por flavor, deploy de Edge Functions y migraciones, gate de compatibilidad de API). [DA-16]
+- [x] **Fix: permiso `INTERNET` en builds release.** Estaba solo en los manifests `debug`/`profile` (Flutter lo inyecta ahí para hot reload), así que el APK **release** quedaba sin red y la autenticación con Supabase fallaba (solo en release, no en debug). Resuelto declarándolo en `android/app/src/main/AndroidManifest.xml` (aplica a todos los builds). Verificado en el Moto g04s (`dumpsys package` → `INTERNET: granted=true`).
+- [ ] **Keystore de release propia** pendiente: hoy el `release` firma con la **debug keystore** (`android/app/build.gradle`), suficiente para instalar en el equipo pero **no** para publicar (Play Store / distribución a terceros). Crear keystore propia + config de firma antes de distribuir. [DA-16]
 - [ ] Confirmar **política de deprecación de versiones de API** (hoy sugerida: últimas 2 minor). [DA-15]
 - [ ] Definir **calendario de festivos colombianos** para la Ley 2300 (fuente local empaquetada y/o actualizable). Pregunta abierta de `00-modelo-dominio.md` RN-08.
 

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import com.cifradocero.shield_app.engine.Decision
+import com.cifradocero.shield_app.engine.EventQueueStore
 import com.cifradocero.shield_app.engine.Hmac
 import com.cifradocero.shield_app.engine.NumberNormalizer
 import com.cifradocero.shield_app.engine.PepperStore
@@ -35,10 +36,18 @@ class SmsReceiver : BroadcastReceiver() {
         val e164 = NumberNormalizer.normalize(sender)
         if (e164 != null) {
             val hash = Hmac.sha256Hex(pepper, e164)
-            val decision = PrecedenceMatcher.decide(hash, snapshot)
-            if (decision == Decision.BLOCK) {
+            val result = PrecedenceMatcher.evaluate(hash, snapshot)
+            if (result.decision == Decision.BLOCK) {
                 SmsThreatLog.record(context, sender, "remitente peligroso")
                 // No se borra el SMS (no somos app por defecto): solo alerta.
+                // Encolar para el historial de eventos (feature `events`): el
+                // body se conserva como contenido en cuarentena (sandbox local).
+                EventQueueStore(context.applicationContext).enqueue(
+                    rawNumber = sender,
+                    channel = "sms",
+                    layer = result.layer,
+                    body = body,
+                )
             }
         }
 

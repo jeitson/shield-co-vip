@@ -3,6 +3,7 @@ import 'package:shield_app/core/db/db_providers.dart';
 import 'package:shield_app/features/engine/data/native_snapshot_writer.dart';
 import 'package:shield_app/features/engine/domain/entities/threat_category.dart';
 import 'package:shield_app/features/engine/domain/precedence_engine.dart';
+import 'package:shield_app/features/lists/presentation/list_hashes_providers.dart';
 
 /// Escritor del snapshot al nativo.
 final nativeSnapshotWriterProvider = Provider<NativeSnapshotWriter>(
@@ -10,16 +11,23 @@ final nativeSnapshotWriterProvider = Provider<NativeSnapshotWriter>(
 );
 
 /// Construye el [EngineIndex] vigente a partir de la base local (dataset de
-/// hashes + categorías) y la configuración del escudo.
+/// hashes + categorías), las **listas locales** del usuario y la configuración
+/// del escudo.
 ///
-/// Las listas blanca/negra **local** quedan vacías por ahora (la feature
-/// `lists` aún no existe); el motor opera con el dataset global + la config.
-/// Cuando llegue `features/lists`, se enchufan aquí sus hashes.
+/// Las listas blanca/negra locales (niveles 1 y 3 del `PrecedenceEngine`) se
+/// alimentan desde la feature `lists` (spec 03), ya hasheadas con el pepper. Si
+/// aún no hay pepper, esos providers degradan a conjuntos vacíos sin romper el
+/// motor. Cualquier reclasificación dispara estos streams → recomputa el índice
+/// → `engineProjectionProvider` reproyecta al nativo (R7.6).
 final engineIndexProvider = FutureProvider<EngineIndex>((ref) async {
   final phoneDao = await ref.watch(phoneHashesDaoProvider.future);
 
   // Reaccionar a cambios de config (reproyecta al togglear una capa).
   final config = await ref.watch(shieldConfigStreamProvider.future);
+
+  // Listas locales del usuario, ya como hashes (reactivas a la clasificación).
+  final whitelistLocal = await ref.watch(confianzaHashesProvider.future);
+  final blacklistLocal = await ref.watch(negraHashesProvider.future);
 
   final blacklistGlobal = await phoneDao.activeHashes();
   final categoryRaw = await phoneDao.activeCategoryByHash();
@@ -30,8 +38,8 @@ final engineIndexProvider = FutureProvider<EngineIndex>((ref) async {
   }
 
   return EngineIndex(
-    whitelistLocal: const {},
-    blacklistLocal: const {},
+    whitelistLocal: whitelistLocal,
+    blacklistLocal: blacklistLocal,
     allowlistGlobal: const {},
     blacklistGlobal: blacklistGlobal,
     categoryByHash: categoryByHash,

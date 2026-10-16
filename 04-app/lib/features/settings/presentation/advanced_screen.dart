@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shield_app/core/config/config_providers.dart';
 import 'package:shield_app/core/theme/app_colors.dart';
 import 'package:shield_app/core/theme/app_dimens.dart';
 import 'package:shield_app/features/auth/presentation/auth_providers.dart';
+import 'package:shield_app/features/events/presentation/dev_event_seeder.dart';
 
 /// Ajustes avanzados (05-listas-y-configuracion). Listas blanca/negra locales,
 /// configuración del escudo y telemetría opt-in — pendientes de su propio flujo.
@@ -41,10 +43,24 @@ class AdvancedScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _seedDevEvents(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final n = await ref.read(devEventSeederProvider)();
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Se sembraron $n eventos de prueba en el registro'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider).valueOrNull;
     final textTheme = Theme.of(context).textTheme;
+    final isDev = ref.watch(appConfigProvider).enableLogging;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Avanzados')),
@@ -112,6 +128,42 @@ class AdvancedScreen extends ConsumerWidget {
               ],
             ),
           ),
+
+          // --- Herramientas de desarrollo (solo flavor dev) ---
+          if (isDev) ...[
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              'DESARROLLO',
+              style: textTheme.labelSmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface1,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+                border: Border.all(
+                  color: AppColors.borderSubtle.withValues(alpha: 0.3),
+                ),
+              ),
+              child: ListTile(
+                leading: const Icon(
+                  Icons.science_outlined,
+                  color: AppColors.accentCyan,
+                ),
+                title: Text('Sembrar eventos de prueba', style: textTheme.bodyLarge),
+                subtitle: Text(
+                  'Inserta 3 interceptaciones de ejemplo en el registro '
+                  '(validación en dispositivo).',
+                  style: textTheme.bodySmall,
+                ),
+                onTap: () => _seedDevEvents(context, ref),
+              ),
+            ),
+          ],
         ],
       ),
     );
