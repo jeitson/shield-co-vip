@@ -30,6 +30,11 @@ abstract final class AppRoutes {
   static const advancedPath = '/advanced';
   static const advancedName = 'advanced';
 
+  /// Gestión de listas locales (confianza + negra) con back. Pantalla propia
+  /// abierta desde Avanzados (spec 05).
+  static const listsPath = '/advanced/lists';
+  static const listsName = 'advanced-lists';
+
   // --- Rutas de detalle / modales (fuera del shell) ---
   /// Detalle de evento. Param: `:id`.
   static const eventDetailPath = '/calls/:id';

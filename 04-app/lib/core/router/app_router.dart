@@ -10,6 +10,7 @@ import 'package:shield_app/features/events/presentation/calls_screen.dart';
 import 'package:shield_app/features/events/presentation/record_detail_screen.dart';
 import 'package:shield_app/features/reports/presentation/report_channels_screen.dart';
 import 'package:shield_app/features/settings/presentation/advanced_screen.dart';
+import 'package:shield_app/features/settings/presentation/lists_screen.dart';
 import 'package:shield_app/features/shield/presentation/shield_screen.dart';
 import 'package:shield_app/features/simulator/presentation/simulator_screen.dart';
 import 'package:shield_app/shell/app_shell.dart';
@@ -101,6 +102,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.simulatorName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SimulatorScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.listsPath,
+        name: AppRoutes.listsName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ListsScreen(),
       ),
 
       // --- Shell con bottom nav (ramas con estado preservado) ---

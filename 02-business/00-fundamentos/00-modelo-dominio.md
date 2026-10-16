@@ -137,9 +137,27 @@ Horario en que **sí** se permite contacto comercial/cobranza:
 | Sábados | 08:00 – 15:00 |
 | Domingos y festivos | Bloqueo total (24h) |
 
-Fuera de esas franjas, la capa `ley` bloquea el contacto comercial. **[PROTOTIPO]** (como texto). El motor que la aplica es **[PROPUESTO]**.
+Fuera de esas franjas, la capa `ley` bloquea el contacto comercial.
 
-> Pregunta abierta: el calendario de **festivos colombianos** debe venir de una fuente mantenida (local empaquetada y/o actualizable). Definir.
+> **[DECIDIDO · DN-05]** Las franjas son **normativas y fijas**: las define la Ley
+> 2300 de 2023, **no el usuario**. La app solo las muestra como información de solo
+> lectura y permite activar/desactivar la **capa** `ley` completa (RN-07). No hay
+> edición de franjas ni de umbrales por el usuario. Si la ley cambia, se actualiza
+> en un único lugar (constante del calendario legal en `core`).
+
+> **[DECIDIDO · DN-06]** El **calendario de festivos colombianos** se **calcula y
+> empaqueta** en la app (algoritmo determinista: festivos fijos + movibles de la
+> Ley Emiliani, que se trasladan al lunes siguiente, + los derivados de la Pascua).
+> El bloqueo por franja/festivo es **siempre offline** (no depende de red: ese es
+> el punto del producto). Se admite un **override opcional desde `app_params`**
+> (lista de fechas adicionales/exentas) para decretos excepcionales, que solo
+> complementa el cálculo local; su ausencia nunca degrada el bloqueo.
+
+> **Dónde se aplica:** la *configuración* (mostrar franjas, capa on/off) vive en
+> `05-listas-y-configuracion`. La *evaluación* real de la franja en tiempo de
+> contacto es responsabilidad del **motor** (spec de motor), no del prototipo. El
+> prototipo solo la muestra como texto. Ver RN-07 sobre cómo la categoría
+> `Violación franja Ley 2300` queda gobernada por la capa `ley`.
 
 ### RN-09 · Idioma y localización
 La app es **español (Colombia)**. Fechas, horas y textos en es-CO. **[PROTOTIPO]**

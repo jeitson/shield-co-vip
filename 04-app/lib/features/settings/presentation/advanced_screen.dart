@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shield_app/core/config/config_providers.dart';
+import 'package:shield_app/core/router/app_routes.dart';
 import 'package:shield_app/core/theme/app_colors.dart';
 import 'package:shield_app/core/theme/app_dimens.dart';
 import 'package:shield_app/features/auth/presentation/auth_providers.dart';
 import 'package:shield_app/features/events/presentation/dev_event_seeder.dart';
+import 'package:shield_app/features/lists/presentation/lists_providers.dart';
+import 'package:shield_app/features/settings/presentation/widgets/law2300_hours_card.dart';
 
-/// Ajustes avanzados (05-listas-y-configuracion). Listas blanca/negra locales,
-/// configuración del escudo y telemetría opt-in — pendientes de su propio flujo.
+/// Ajustes avanzados (05-listas-y-configuracion). Menú de secciones: acceso a la
+/// **gestión de listas** (pantalla propia con back), el **horario legal Ley
+/// 2300** en acordeón (solo lectura), acceso al **Simulador** y **cierre de
+/// sesión** (DN-02).
 ///
-/// Por ahora expone el **cierre de sesión** (requisito de DN-02: debe existir
-/// logout), útil además para validar el flujo de auth en pruebas.
+/// Las listas (confianza/negra) viven en su propia pantalla (`ListsScreen`) por
+/// la cantidad de interacción que manejan; aquí solo se muestra el acceso con el
+/// conteo. El "Modo Marco Móvil" del prototipo no se incluye (chrome, no producto).
 class AdvancedScreen extends ConsumerWidget {
   const AdvancedScreen({super.key});
 
@@ -61,18 +68,92 @@ class AdvancedScreen extends ConsumerWidget {
     final session = ref.watch(sessionProvider).valueOrNull;
     final textTheme = Theme.of(context).textTheme;
     final isDev = ref.watch(appConfigProvider).enableLogging;
+    final confianza = ref.watch(confianzaNumbersProvider).valueOrNull;
+    final negra = ref.watch(negraNumbersProvider).valueOrNull;
+    final listsSubtitle = (confianza == null || negra == null)
+        ? 'Números de confianza y bloqueados'
+        : '${confianza.length} en confianza · ${negra.length} bloqueados';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Avanzados')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          // Secciones futuras (05-listas-y-configuracion).
-          _SectionHint(
-            icon: Icons.tune_outlined,
-            text:
-                'Listas locales, configuración del escudo y telemetría '
-                'llegarán en su propio flujo.',
+          // --- Protección (accesos a listas, horario y simulador) ---
+          Text(
+            'PROTECCIÓN',
+            style: textTheme.labelSmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _Card(
+            child: Column(
+              children: [
+                // Listas → pantalla propia con back.
+                ListTile(
+                  leading: const Icon(
+                    Icons.playlist_add_check,
+                    color: AppColors.accentCyan,
+                  ),
+                  title: Text('Listas locales', style: textTheme.bodyLarge),
+                  subtitle: Text(listsSubtitle, style: textTheme.bodySmall),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.pushNamed(AppRoutes.listsName),
+                ),
+                const Divider(height: 1, color: AppColors.surface4),
+                // Horario legal Ley 2300 → acordeón (solo lectura).
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    dividerColor: Colors.transparent,
+                  ),
+                  child: ExpansionTile(
+                    leading: const Icon(
+                      Icons.schedule,
+                      color: AppColors.accentMint,
+                    ),
+                    title: Text(
+                      'Horario legal (Ley 2300)',
+                      style: textTheme.bodyLarge,
+                    ),
+                    subtitle: Text(
+                      'Franja permitida de contacto comercial',
+                      style: textTheme.bodySmall,
+                    ),
+                    childrenPadding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                    ),
+                    children: const [Law2300HoursCard(embedded: true)],
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.surface4),
+                // Simulador → pantalla propia (ya existía).
+                ListTile(
+                  leading: const Icon(
+                    Icons.play_circle_outline,
+                    color: AppColors.accentCyan,
+                  ),
+                  title: Text('Abrir Simulador', style: textTheme.bodyLarge),
+                  subtitle: Text(
+                    'Prueba el motor con números de ejemplo',
+                    style: textTheme.bodySmall,
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.pushNamed(AppRoutes.simulatorName),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
 
@@ -86,14 +167,7 @@ class AdvancedScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface1,
-              borderRadius: BorderRadius.circular(AppRadii.card),
-              border: Border.all(
-                color: AppColors.borderSubtle.withValues(alpha: 0.3),
-              ),
-            ),
+          _Card(
             child: Column(
               children: [
                 if (session != null)
@@ -141,14 +215,7 @@ class AdvancedScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface1,
-                borderRadius: BorderRadius.circular(AppRadii.card),
-                border: Border.all(
-                  color: AppColors.borderSubtle.withValues(alpha: 0.3),
-                ),
-              ),
+            _Card(
               child: ListTile(
                 leading: const Icon(
                   Icons.science_outlined,
@@ -170,28 +237,25 @@ class AdvancedScreen extends ConsumerWidget {
   }
 }
 
-/// Nota discreta para las secciones aún no construidas.
-class _SectionHint extends StatelessWidget {
-  const _SectionHint({required this.icon, required this.text});
+/// Tarjeta contenedora estándar de Avanzados (superficie + borde sutil).
+class _Card extends StatelessWidget {
+  const _Card({required this.child});
 
-  final IconData icon;
-  final String text;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: AppColors.textMuted),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            text,
-            style: textTheme.bodySmall?.copyWith(color: AppColors.textMuted),
-          ),
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.surface1,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(
+          color: AppColors.borderSubtle.withValues(alpha: 0.3),
         ),
-      ],
+      ),
+      child: child,
     );
   }
 }
+
