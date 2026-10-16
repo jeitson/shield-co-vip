@@ -5,13 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:shield_app/core/router/app_routes.dart';
 import 'package:shield_app/core/theme/app_colors.dart';
 import 'package:shield_app/core/theme/app_dimens.dart';
+import 'package:shield_app/core/widgets/primary_button.dart';
 import 'package:shield_app/features/auth/presentation/controllers/register_controller.dart';
 import 'package:shield_app/features/auth/presentation/state/register_submit_state.dart';
 import 'package:shield_app/features/auth/presentation/widgets/auth_scaffold.dart';
 import 'package:shield_app/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:shield_app/features/auth/presentation/widgets/brand_header.dart';
 import 'package:shield_app/features/auth/presentation/widgets/consent_checkbox.dart';
-import 'package:shield_app/features/auth/presentation/widgets/primary_button.dart';
 
 /// PANT-REGISTER · Crear cuenta (01-autenticacion).
 ///

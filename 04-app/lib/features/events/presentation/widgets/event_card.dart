@@ -5,10 +5,13 @@ import 'package:shield_app/core/theme/app_dimens.dart';
 import 'package:shield_app/core/theme/threat_level.dart';
 import 'package:shield_app/features/engine/domain/entities/incoming_contact.dart';
 import 'package:shield_app/features/events/domain/entities/intercepted_event.dart';
+import 'package:shield_app/features/events/presentation/controllers/detail_action_controller.dart';
 import 'package:shield_app/features/events/presentation/event_time_format.dart';
+import 'package:shield_app/features/events/presentation/state/detail_action_state.dart';
 import 'package:shield_app/features/events/presentation/widgets/quarantine_sandbox.dart';
 import 'package:shield_app/features/lists/domain/entities/listed_number.dart';
 import 'package:shield_app/features/lists/presentation/lists_providers.dart';
+import 'package:shield_app/features/reports/domain/entities/report_outcome.dart';
 
 /// Tarjeta de un evento interceptado (CallsScreen.tsx · timeline item).
 ///
@@ -37,6 +40,25 @@ class EventCard extends ConsumerWidget {
     final membership = ref.watch(membershipProvider(event.sender)).valueOrNull;
     final isTrusted = membership == ListKind.confianza;
     final isBlacklisted = membership == ListKind.negra;
+
+    // Reacciona a los desenlaces del flujo "Reportar y bloquear" (mismo
+    // controller que el detalle) mostrando un SnackBar efímero (RN-CALLS-06).
+    ref.listen(detailActionControllerProvider(event.sender), (prev, next) {
+      if (next.kind != DetailActionKind.dualReport) return;
+      if (prev?.phase == next.phase) return;
+      if (next.phase == DetailActionPhase.success) {
+        _showSnack(context, _reportSuccessMessage(next.outcome));
+      } else if (next.phase == DetailActionPhase.error) {
+        _showSnack(
+          context,
+          next.errorMessage ?? 'No se pudo enviar el reporte.',
+        );
+      }
+    });
+
+    final action = ref.watch(detailActionControllerProvider(event.sender));
+    final reporting = action.kind == DetailActionKind.dualReport &&
+        action.phase == DetailActionPhase.generating;
 
     return Material(
       color: AppColors.surface1,
@@ -76,7 +98,14 @@ class EventCard extends ConsumerWidget {
                   QuarantineSandbox(content: event.quarantinedContent!),
                 ],
                 const SizedBox(height: AppSpacing.md),
-                _actions(context, ref, textTheme, isTrusted, isBlacklisted),
+                _actions(
+                  context,
+                  ref,
+                  textTheme,
+                  isTrusted,
+                  isBlacklisted,
+                  reporting,
+                ),
               ],
             ),
           ),
@@ -245,6 +274,7 @@ class EventCard extends ConsumerWidget {
     TextTheme textTheme,
     bool isTrusted,
     bool isBlacklisted,
+    bool reporting,
   ) {
     return Container(
       padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -258,19 +288,23 @@ class EventCard extends ConsumerWidget {
         runSpacing: AppSpacing.sm,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
+          // Reemplaza "Lista Negra": bloquea localmente y reporta a la comunidad
+          // de forma anónima (mismo flujo que el detalle). La categoría viaja
+          // desde el propio evento (RN-07), sin pedirla de nuevo en la tarjeta.
           _ActionButton(
-            icon: Icons.block,
-            label: isBlacklisted ? 'En Lista Negra' : 'Lista Negra',
+            icon: reporting
+                ? Icons.sync
+                : (isBlacklisted ? Icons.verified : Icons.shield),
+            label: reporting
+                ? 'Reportando…'
+                : (isBlacklisted ? 'Bloqueado' : 'Reportar y bloquear'),
             color: AppColors.danger,
             filled: isBlacklisted,
-            onTap: () => _classify(
-              context,
-              ref,
-              target: isBlacklisted ? null : ListKind.negra,
-              toastOn: '${event.sender} agregado a lista negra',
-              toastOff: '${event.sender} removido de lista negra',
-              wasActive: isBlacklisted,
-            ),
+            onTap: reporting
+                ? () {}
+                : () => ref
+                    .read(detailActionControllerProvider(event.sender).notifier)
+                    .reportAndBlock(event.category),
           ),
           _ActionButton(
             icon: Icons.verified_user_outlined,
@@ -298,6 +332,26 @@ class EventCard extends ConsumerWidget {
       ),
     );
   }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 2500), // RN-CALLS-06
+        ),
+      );
+  }
+
+  String _reportSuccessMessage(ReportOutcome? outcome) => switch (outcome) {
+        ReportOutcome.yaReportado =>
+          '${event.sender}: ya lo habías reportado (bloqueado)',
+        ReportOutcome.rechazadoProtegido =>
+          '${event.sender}: número protegido. Bloqueado solo localmente',
+        _ => '${event.sender} bloqueado y reportado a la comunidad',
+      };
 
   Future<void> _classify(
     BuildContext context,

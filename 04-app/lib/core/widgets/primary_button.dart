@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shield_app/core/theme/app_colors.dart';
 import 'package:shield_app/core/theme/app_dimens.dart';
 
-/// Botón primario de autenticación con color **pintado explícitamente**.
+/// Botón primario del design system con color **pintado explícitamente**.
 ///
+/// Reutilizable en toda la app (auth, detalle de evento, etc.).
 /// No usa `FilledButton`/`ElevatedButton` a propósito: en algunos dispositivos
 /// (p. ej. Material You de Motorola) el `ColorScheme` dinámico del sistema
 /// filtraba un fondo magenta pese a fijar el tema. Aquí el color del fondo y del

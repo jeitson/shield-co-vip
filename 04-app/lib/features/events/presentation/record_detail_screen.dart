@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shield_app/core/router/app_routes.dart';
 import 'package:shield_app/core/theme/app_colors.dart';
 import 'package:shield_app/core/theme/app_dimens.dart';
-import 'package:shield_app/features/events/presentation/event_time_format.dart';
+import 'package:shield_app/features/engine/domain/entities/incoming_contact.dart';
+import 'package:shield_app/features/events/domain/entities/intercepted_event.dart';
+import 'package:shield_app/features/events/presentation/controllers/detail_action_controller.dart';
 import 'package:shield_app/features/events/presentation/events_providers.dart';
+import 'package:shield_app/features/events/presentation/widgets/block_options_module.dart';
+import 'package:shield_app/features/events/presentation/widgets/forensic_metadata.dart';
+import 'package:shield_app/features/events/presentation/widgets/inspection_card.dart';
+import 'package:shield_app/features/events/presentation/widgets/privacy_footer.dart';
+import 'package:shield_app/features/events/presentation/widgets/sms_payload_sandbox.dart';
+import 'package:shield_app/features/reports/presentation/reports_providers.dart';
 
-/// Detalle de evento (04-detalle-evento). Recibe el `id` por ruta y carga el
-/// evento desde el repositorio (R10: deep-link-capable, no depende de pasar el
-/// objeto en memoria).
+/// Detalle de evento · ficha forense (PANT-DETAIL, spec 04).
 ///
-/// El análisis forense completo + reportar/bloquear es la spec `04`; aquí se
-/// entrega el **enganche de datos** y el estado "evento no disponible"
-/// (RF-DETAIL-11) para que la navegación desde el registro no quede rota.
+/// Recibe el `id` por ruta y carga el evento desde el repositorio
+/// (`eventByIdProvider`, R1.1/R10: deep-link-capable, no depende de pasar el
+/// objeto en memoria). Permite inspeccionar metadatos, revisar el payload del
+/// SMS en sandbox y responder con dos vías: reportar+bloquear (comunitario
+/// anónimo) o bloquear solo localmente.
 class RecordDetailScreen extends ConsumerWidget {
   const RecordDetailScreen({required this.eventId, super.key});
 
@@ -20,69 +30,32 @@ class RecordDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(eventByIdProvider(eventId));
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalle')),
+      appBar: AppBar(
+        title: const Text('Detalle del evento'),
+        backgroundColor: AppColors.bgSurface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Volver',
+          color: AppColors.textPrimary,
+          onPressed: () {
+            // Vuelve a la pantalla anterior; si no hay pila (deep-link directo),
+            // cae al Registro de eventos (R11).
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed(AppRoutes.callsName);
+            }
+          },
+        ),
+      ),
       backgroundColor: AppColors.bgSurface,
       body: eventAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => _unavailable(context),
-        data: (event) {
-          if (event == null) return _unavailable(context);
-          // Vista mínima de datos (la ficha forense completa es la spec 04).
-          return ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              Text(
-                event.sender,
-                style: textTheme.titleLarge?.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                '${event.level.label} • ${formatEventTime(event.timestamp)}',
-                style: textTheme.labelMedium?.copyWith(
-                  color: event.level.color,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              _row('Amenaza', event.threatTitle, textTheme),
-              _row('Categoría', event.category.label, textTheme),
-              _row('Reputación', event.reputationTag, textTheme),
-              _row('Diagnóstico', event.diagnosis, textTheme),
-              if (event.hasQuarantine)
-                _row('Contenido', event.quarantinedContent!, textTheme),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _row(String label, String value, TextTheme textTheme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: textTheme.labelSmall?.copyWith(
-              color: AppColors.textSecondary,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
+        data: (event) =>
+            event == null ? _unavailable(context) : _DetailBody(event: event),
       ),
     );
   }
@@ -119,6 +92,112 @@ class RecordDetailScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Cuerpo de la ficha forense con estado local del vector activo.
+class _DetailBody extends ConsumerStatefulWidget {
+  const _DetailBody({required this.event});
+
+  final InterceptedEvent event;
+
+  @override
+  ConsumerState<_DetailBody> createState() => _DetailBodyState();
+}
+
+class _DetailBodyState extends ConsumerState<_DetailBody> {
+  late ContactChannel _vector;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pestaña inicial = tipo del evento (R1.4).
+    _vector = widget.event.type;
+    // Si la consulta "¿ya lo reporté?" ya estaba resuelta en caché, siembra el
+    // estado tras el primer frame (evita mutar un provider durante el build).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final already =
+          ref.read(reportedStatusProvider(widget.event.sender)).valueOrNull;
+      if (already == true) {
+        ref
+            .read(detailActionControllerProvider(widget.event.sender).notifier)
+            .seedAlreadyReported();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final event = widget.event;
+    final textTheme = Theme.of(context).textTheme;
+
+    // R9: consulta al servidor si este dispositivo ya reportó el número y, si
+    // así es, siembra el estado "ya reportado" en el controller al abrir.
+    ref.listen(reportedStatusProvider(event.sender), (prev, next) {
+      if (next.valueOrNull == true) {
+        ref
+            .read(detailActionControllerProvider(event.sender).notifier)
+            .seedAlreadyReported();
+      }
+    });
+    final showSandbox = _vector == ContactChannel.sms && event.hasQuarantine;
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        // Indicador flotante "Número Sospechoso".
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: AppColors.danger,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              'NÚMERO SOSPECHOSO',
+              style: textTheme.labelSmall?.copyWith(
+                color: AppColors.danger,
+                letterSpacing: 1,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Flexible(
+              child: Text(
+                'Identificado por la comunidad',
+                textAlign: TextAlign.end,
+                style: textTheme.labelSmall?.copyWith(
+                  color: AppColors.textMuted,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        InspectionCard(
+          event: event,
+          activeVector: _vector,
+          onVectorChanged: (v) => setState(() => _vector = v),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        if (showSandbox) ...[
+          SmsPayloadSandbox(content: event.quarantinedContent!),
+          const SizedBox(height: AppSpacing.md),
+        ],
+        ForensicMetadata(event: event),
+        const SizedBox(height: AppSpacing.md),
+        BlockOptionsModule(event: event),
+        const SizedBox(height: AppSpacing.md),
+        const PrivacyFooter(),
+        const SizedBox(height: AppSpacing.xl),
+      ],
     );
   }
 }

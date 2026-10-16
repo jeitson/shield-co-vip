@@ -3,8 +3,8 @@
 // No contiene lógica de negocio ni toca el pepper. Existe para fijar el patrón
 // de Edge Functions versionadas por carpeta (`/vN`, DA-15) y validar el
 // toolchain de despliegue (`supabase functions deploy v1-health`). Las
-// funciones sensibles (v1-pepper, v1-sync, v1-session, v1-report, v1-metrics)
-// se añaden en fases posteriores.
+// funciones sensibles v1-pepper/v1-sync/v1-session/v1-report ya están escritas;
+// v1-metrics se añade en una fase posterior.
 
 Deno.serve((_req: Request) => {
   const body = {
