@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shield_app/app.dart';
 import 'package:shield_app/core/config/app_config.dart';
 import 'package:shield_app/core/config/config_providers.dart';
+import 'package:shield_app/features/sync/background/sync_background.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Arranque compartido por todos los flavors.
@@ -23,6 +26,15 @@ Future<void> bootstrap(AppConfig config) async {
       publishableKey: config.supabaseAnonKey,
       debug: config.enableLogging,
     );
+
+    // Sync periódico en background (Android MVP; iOS diferido). Solo con backend.
+    if (Platform.isAndroid) {
+      try {
+        await registerBackgroundSync();
+      } catch (_) {
+        // No bloquear el arranque si WorkManager no está disponible.
+      }
+    }
   }
 
   runApp(

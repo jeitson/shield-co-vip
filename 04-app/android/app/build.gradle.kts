@@ -68,3 +68,10 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Almacenamiento cifrado nativo (EncryptedSharedPreferences, master key en
+    // Android Keystore) para custodiar el pepper del lado nativo, usado por el
+    // CallScreeningService/SmsReceiver que corren fuera del engine Dart.
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+}

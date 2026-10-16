@@ -71,9 +71,9 @@ presentación y pruebas no cambian** (solo se sustituye la fuente remota).
 
 ## 10. Confirmación de correo obligatoria (R7)
 
-- [ ] 10.1 Caso de uso `ResendConfirmation` + método `resendConfirmation(email)` en `AuthRemoteDataSource` (Supabase `auth.resend`) y en el fake.
-- [ ] 10.2 `Failure` específico `EmailNotConfirmedFailure` y mapeo del error de Supabase ("email not confirmed") en el login.
-- [ ] 10.3 En login: detectar cuenta no confirmada y ofrecer acción **"Reenviar correo de confirmación"** con aviso neutro.
-- [ ] 10.4 Verificación: `flutter analyze` + tests; prueba en dispositivo (registro → login bloqueado → reenviar).
-- [ ] 10.5 Plantilla de correo (es-CO, marca Cifrado Cero) en `05-backend/email-templates/` + instrucciones de dónde pegarla en el panel de Supabase.
+- [x] 10.1 Caso de uso `ResendConfirmation` + método `resendConfirmation(email)` en `AuthRemoteDataSource` (Supabase `auth.resend`) y en el fake.
+- [x] 10.2 `Failure` específico `EmailNotConfirmedFailure` y mapeo del error de Supabase ("email not confirmed") en el login. (También `EmailConfirmationPendingFailure` para el alta en dos pasos, RN-REG-05.)
+- [x] 10.3 En login: detectar cuenta no confirmada y ofrecer acción **"Reenviar correo de confirmación"** con aviso neutro. (Registro muestra `pendingConfirmation` en verde y redirige a login.)
+- [x] 10.4 Verificación automatizada: `flutter analyze` sin issues y `flutter test` (114 passed, incluye `ResendConfirmation`). **Pendiente** la prueba en dispositivo real (registro → login bloqueado → reenviar) con la confirmación activa en el panel.
+- [x] 10.5 Plantilla de correo (es-CO, marca Cifrado Cero) en `05-backend/email-templates/confirm-signup.html` + `README.md` con el paso a paso para pegarla en el panel de Supabase.
   - _Req: R7 (RN-LOGIN-04, RN-REG-05)_

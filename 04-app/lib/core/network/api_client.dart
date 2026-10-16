@@ -49,4 +49,25 @@ class ApiClient {
       return Err(DioErrorMapper.map(e));
     }
   }
+
+  /// POST que devuelve el **status HTTP + cuerpo** sin mapear a [Failure] ni
+  /// lanzar ante códigos de error. Útil cuando la lógica necesita distinguir
+  /// casos por el cuerpo del error (p. ej. `device_revocado` vs `device_not_found`
+  /// en `v1-session/refresh`). En error de transporte (sin respuesta), devuelve
+  /// status `null`.
+  Future<({int? status, dynamic body})> postRaw(
+    String path, {
+    Object? data,
+  }) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        path,
+        data: data,
+        options: Options(validateStatus: (_) => true),
+      );
+      return (status: response.statusCode, body: response.data);
+    } catch (e) {
+      return (status: null, body: e);
+    }
+  }
 }

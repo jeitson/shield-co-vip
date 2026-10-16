@@ -79,6 +79,12 @@ class AppConfig {
     supabaseAnonKey: _envSupabaseAnonKey,
   );
 
+  /// Resuelve la configuración desde el entorno de compilación, sin depender del
+  /// árbol de providers. Útil en el **isolate de background** (WorkManager), que
+  /// no tiene `ProviderScope`. Usa el flavor prod por defecto (logging apagado);
+  /// las credenciales de Supabase se leen de los `--dart-define`.
+  factory AppConfig.resolveFromEnvironment() => AppConfig.prod();
+
   /// Base de las Edge Functions de Supabase (`<proyecto>.supabase.co/functions/v1`).
   ///
   /// Cuando hay credenciales de Supabase, se deriva de [supabaseUrl] para
@@ -87,7 +93,9 @@ class AppConfig {
   String get functionsBaseUrl =>
       hasSupabase ? '$supabaseUrl/functions' : apiBaseUrl;
 
-  /// Base completa de la API de funciones, incluyendo el prefijo de versión.
-  /// Ej: `https://<ref>.supabase.co/functions/v1`.
-  String get versionedApiBaseUrl => '$functionsBaseUrl/$apiVersion';
+  /// Base completa de la API de funciones, incluyendo el prefijo de versión y
+  /// una **barra final** para que Dio concatene bien los paths relativos (sin
+  /// la barra, `.../v1` + `v1-sync` daría `.../v1v1-sync`).
+  /// Ej: `https://<ref>.supabase.co/functions/v1/`.
+  String get versionedApiBaseUrl => '$functionsBaseUrl/$apiVersion/';
 }

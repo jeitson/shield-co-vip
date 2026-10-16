@@ -54,7 +54,8 @@ class AdvancedScreen extends ConsumerWidget {
           // Secciones futuras (05-listas-y-configuracion).
           _SectionHint(
             icon: Icons.tune_outlined,
-            text: 'Listas locales, configuración del escudo y telemetría '
+            text:
+                'Listas locales, configuración del escudo y telemetría '
                 'llegarán en su propio flujo.',
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -99,10 +100,7 @@ class AdvancedScreen extends ConsumerWidget {
                 if (session != null)
                   const Divider(height: 1, color: AppColors.surface4),
                 ListTile(
-                  leading: const Icon(
-                    Icons.logout,
-                    color: AppColors.danger,
-                  ),
+                  leading: const Icon(Icons.logout, color: AppColors.danger),
                   title: Text(
                     'Cerrar sesión',
                     style: textTheme.bodyLarge?.copyWith(

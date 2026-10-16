@@ -18,8 +18,7 @@ class LoginFormState extends Equatable {
   final bool showPassword;
 
   /// Habilitación del botón: ambos campos con contenido.
-  bool get canSubmit =>
-      identifier.trim().isNotEmpty && password.isNotEmpty;
+  bool get canSubmit => identifier.trim().isNotEmpty && password.isNotEmpty;
 
   LoginFormState copyWith({
     String? identifier,

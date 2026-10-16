@@ -63,10 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -206,10 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
-            ),
+            content: Text(message, style: const TextStyle(color: Colors.white)),
             backgroundColor: AppColors.dangerStrong,
             behavior: SnackBarBehavior.floating,
           ),

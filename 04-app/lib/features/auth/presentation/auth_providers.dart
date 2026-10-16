@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shield_app/core/config/config_providers.dart';
+import 'package:shield_app/core/secure/secure_providers.dart';
 import 'package:shield_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:shield_app/features/auth/data/datasources/auth_remote_data_source_fake.dart';
 import 'package:shield_app/features/auth/data/datasources/auth_remote_data_source_supabase.dart';
@@ -30,10 +30,8 @@ enum AuthStatus {
 
 // --- Inyección de dependencias (data) ---
 
-/// Secure storage subyacente (Android Keystore / iOS Keychain) [DA-14].
-final secureStorageProvider = Provider<FlutterSecureStorage>(
-  (ref) => const FlutterSecureStorage(),
-);
+// `secureStorageProvider` vive ahora en `core/secure/secure_providers.dart`
+// (lo comparten auth, la DEK de la base local y el pepper). Se importa arriba.
 
 /// Almacén seguro de la sesión.
 final authSessionStoreProvider = Provider<AuthSessionStore>(

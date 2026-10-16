@@ -20,10 +20,13 @@ void main() {
 
     test('versionedApiBaseUrl concatena base + versión', () {
       final config = AppConfig.dev();
+      // Lleva barra final para que Dio concatene bien los paths relativos
+      // (`.../v1/` + `v1-sync` = `.../v1/v1-sync`, no `.../v1v1-sync`).
       expect(
         config.versionedApiBaseUrl,
-        '${config.apiBaseUrl}/${config.apiVersion}',
+        '${config.apiBaseUrl}/${config.apiVersion}/',
       );
+      expect(config.versionedApiBaseUrl, endsWith('/v1/'));
       expect(config.apiVersion, 'v1');
     });
   });

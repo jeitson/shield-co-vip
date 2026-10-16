@@ -44,10 +44,8 @@ class PrimaryButton extends StatelessWidget {
         ? (foregroundColor ?? AppColors.accentCyanInk)
         : AppColors.textMuted;
 
-    final textStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-      color: fg,
-      fontWeight: FontWeight.bold,
-    );
+    final textStyle = Theme.of(context).textTheme.titleMedium
+        ?.copyWith(color: fg, fontWeight: FontWeight.bold);
 
     return Semantics(
       button: true,

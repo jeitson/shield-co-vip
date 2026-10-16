@@ -57,14 +57,35 @@ class UnknownFailure extends Failure {
     : super(message);
 }
 
+/// El dispositivo fue **revocado** en el servidor (DA-04): su protección se
+/// activó en otro dispositivo. La app debe borrar el material sensible (pepper,
+/// DEK, dataset) y volver a login. Es distinto de un 401 genérico de sesión
+/// (que NO debe disparar el wipe).
+class DeviceRevokedFailure extends Failure {
+  const DeviceRevokedFailure({
+    String message = 'La protección se activó en otro dispositivo.',
+    super.cause,
+  }) : super(message);
+}
+
+/// El dataset descargado no superó la verificación de integridad (checksum no
+/// coincide). El cliente **no** aplica el payload y marca el error, pudiendo
+/// reintentar (`02-seguridad` §02.6, verificación de integridad del dataset).
+class IntegrityFailure extends Failure {
+  const IntegrityFailure({
+    String message =
+        'El paquete de firmas no superó la verificación de integridad.',
+    super.cause,
+  }) : super(message);
+}
+
 /// Caso **informativo**, no de error: la cuenta se creó pero requiere
 /// confirmación de correo antes de poder iniciar sesión (política del proyecto
 /// Supabase). Se modela como [Failure] porque interrumpe el flujo de "abrir
 /// sesión", pero la UI debe mostrarlo como éxito/aviso, no como error rojo.
 class EmailConfirmationPendingFailure extends Failure {
   const EmailConfirmationPendingFailure({
-    String message =
-        'Cuenta creada. Te enviamos un correo para confirmar tu cuenta antes de ingresar.',
+    String message = 'Cuenta creada. Te enviamos un correo para confirmar tu cuenta antes de ingresar.',
     super.cause,
   }) : super(message);
 }
@@ -75,8 +96,7 @@ class EmailConfirmationPendingFailure extends Failure {
 class EmailNotConfirmedFailure extends Failure {
   const EmailNotConfirmedFailure({
     this.email,
-    String message =
-        'Tu correo aún no está confirmado. Revisa tu bandeja o reenvía el enlace.',
+    String message = 'Tu correo aún no está confirmado. Revisa tu bandeja o reenvía el enlace.',
     super.cause,
   }) : super(message);
 

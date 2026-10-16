@@ -34,12 +34,39 @@ dependencies:
   # Postgres con RLS para el backend real [DN-01, DA-11].
   supabase_flutter: ^2.8.0
 
+  # Persistencia local cifrada [DA-07, 02-seguridad §02.3, 04-app-flutter §04.4].
+  # drift = ORM tipado + migraciones; sqlite3 = motor nativo (con el hook
+  # `sqlite3mc` de abajo aporta cifrado AES-256 estilo SQLCipher). La base se
+  # abre con la DEK del keystore (core/secure); nunca en claro.
+  drift: ^2.35.2
+  sqlite3: ^3.7.1
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  connectivity_plus: ^7.3.2
+  workmanager: ^0.10.10
+  crypto: ^3.0.7
+  device_info_plus: ^12.4.0
+  uuid: ^4.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   # Análisis estático
   flutter_lints: ^6.0.0
+
+  # Generación de código de drift (tablas/DAOs tipados).
+  drift_dev: ^2.35.1
+  build_runner: ^2.16.2
+
+# Build hooks: bundla SQLite3MultipleCiphers (sqlite3mc) en vez del SQLite
+# estándar, habilitando el cifrado en reposo de la base local (reemplaza a
+# sqlcipher_flutter_libs desde drift 2.32 / sqlite3 3.x). Ver spec
+# 03-persistencia-local §2 y 02-seguridad §02.3.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
 
 flutter:
   uses-material-design: true

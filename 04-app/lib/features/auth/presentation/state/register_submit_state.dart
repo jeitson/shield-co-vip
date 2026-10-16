@@ -56,7 +56,8 @@ class RegisterSubmitState extends Equatable {
 
   const RegisterSubmitState.idle() : this();
 
-  const RegisterSubmitState.submitting() : this(phase: RegisterPhase.submitting);
+  const RegisterSubmitState.submitting()
+    : this(phase: RegisterPhase.submitting);
 
   const RegisterSubmitState.success(AuthSession session)
     : this(phase: RegisterPhase.success, session: session);
